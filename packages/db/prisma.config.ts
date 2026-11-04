@@ -30,6 +30,8 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? localDatabaseUrl,
+    // Prisma 7 reads this URL for CLI commands such as migrate.
+    // DIRECT_URL is the direct connection; DATABASE_URL may be a pooler.
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? localDatabaseUrl,
   },
 });

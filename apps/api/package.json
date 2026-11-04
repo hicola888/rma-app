@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ../../scripts/with-root-env.mjs nest start --watch",
+    "dev:cloud": "node ../../scripts/with-root-env.mjs --env .env.supabase -- nest start --watch",
     "build": "nest build",
     "start": "node ../../scripts/with-root-env.mjs node dist/main.js",
     "lint": "eslint ."

@@ -13,7 +13,9 @@
     "format": "prettier --write .",
     "db:generate": "pnpm --filter @rma/db db:generate",
     "db:migrate": "pnpm --filter @rma/db db:migrate",
-    "db:migrate:deploy": "pnpm --filter @rma/db db:migrate:deploy"
+    "db:migrate:deploy": "pnpm --filter @rma/db db:migrate:deploy",
+    "db:migrate:cloud": "pnpm --filter @rma/db db:migrate:cloud",
+    "dev:cloud": "turbo dev:cloud"
   },
   "devDependencies": {
     "dotenv": "^18.0.9",
