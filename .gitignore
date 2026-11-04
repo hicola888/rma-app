@@ -10,8 +10,11 @@ coverage
 *.tsbuildinfo
 
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.supabase.example
+!**/.env.example
+!**/.env.supabase.example
 
 *.log
 .DS_Store

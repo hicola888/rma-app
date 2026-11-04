@@ -113,9 +113,53 @@ docker compose down
 | `pnpm db:migrate`        | 本地开发迁移（`prisma migrate dev`） |
 | `pnpm db:migrate:deploy` | 只应用已有迁移                       |
 | `pnpm db:generate`       | 重新生成 Prisma Client               |
+| `pnpm db:migrate:cloud`  | 把已有迁移应用到 Supabase            |
+| `pnpm dev:cloud`         | 用 `.env.supabase` 启动 Web 和 API   |
 
 这些脚本可以在 PowerShell 里直接运行，不依赖 Bash。
 
 ## 当前范围
 
 这一步包含可运行的工程骨架：首页、PWA manifest、健康检查、Swagger、Organization 占位模型和第一条迁移。登录、租户隔离、退货单和完整数据库设计留到下一步，所以 Prisma schema 保持最小。
+
+## 连接 Supabase
+
+本地 Docker 继续用根目录 `.env`。云端数据库用根目录 `.env.supabase`，两条命令分开，不用互相覆盖。
+
+在 Supabase 打开项目，进入 **Connect → ORMs → Prisma**，复制两段连接串：
+
+- `DATABASE_URL`：连接池，端口 **6543**，查询参数里保留 `pgbouncer=true`。应用运行时用它。
+- `DIRECT_URL`：直连，端口 **5432**，不要加 `pgbouncer=true`。Prisma 迁移用它。
+
+在仓库根目录执行：
+
+```powershell
+Copy-Item .env.supabase.example .env.supabase
+```
+
+用编辑器打开 `.env.supabase`，把两段占位符换成面板上的连接串。Sydney 区域的主机名里一般带 `ap-southeast-2`。面板上如果还有 `sslmode=require`，保留它。
+
+密码里如果有 `@`、`#`、`%`、`&`、`+`、`/`、`?` 这类字符，放进连接串之前要做 URL 编码，例如 `@` 写成 `%40`。从 Prisma 面板复制的整段字符串通常已经编码过，不要再改密码那一段。
+
+本地 `.env` 里让 `DIRECT_URL` 和 `DATABASE_URL` 相同，指向 Docker 的宿主机端口 15432：
+
+```text
+DATABASE_URL=postgresql://rma:rma@localhost:15432/rma?schema=public
+DIRECT_URL=postgresql://rma:rma@localhost:15432/rma?schema=public
+```
+
+把迁移应用到 Supabase（使用 `prisma migrate deploy`，不会进入 `migrate dev` 的交互）：
+
+```powershell
+pnpm db:migrate:cloud
+```
+
+成功后打开 Supabase 的 **Table Editor**，应能看到表 `Organization`。
+
+用云端数据库启动本机 Web 和 API：
+
+```powershell
+pnpm dev:cloud
+```
+
+仍用本地 Docker 时，继续执行 `pnpm db:migrate` 和 `pnpm dev`。
