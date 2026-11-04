@@ -1,0 +1,36 @@
+# 本地开发用的 PostgreSQL 与 Redis。账号口令仅供本机使用。
+name: rma
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: rma-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: rma
+      POSTGRES_PASSWORD: rma
+      POSTGRES_DB: rma
+    volumes:
+      - rma_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rma -d rma']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: rma-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  rma_postgres_data:

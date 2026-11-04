@@ -1,0 +1,23 @@
+{
+  "name": "rma",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint && prettier --check .",
+    "format": "prettier --write .",
+    "db:generate": "pnpm --filter @rma/db db:generate",
+    "db:migrate": "pnpm --filter @rma/db db:migrate",
+    "db:migrate:deploy": "pnpm --filter @rma/db db:migrate:deploy"
+  },
+  "devDependencies": {
+    "dotenv": "^18.0.9",
+    "prettier": "^3.9.10",
+    "turbo": "^2.11.10"
+  }
+}
