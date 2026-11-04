@@ -1,0 +1,35 @@
+{
+  "name": "@rma/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "node ../../scripts/with-root-env.mjs prisma migrate dev",
+    "db:migrate:deploy": "node ../../scripts/with-root-env.mjs prisma migrate deploy",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "dotenv": "^18.0.9",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prisma": "7.10.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}
