@@ -60,9 +60,9 @@ pnpm dev
 
 说明：
 
-1. `Copy-Item` 生成根目录 `.env`。里面是本机 Docker 的默认账号，不是生产密钥。如果 `.env` 已经存在，不必再复制。各应用目录下也有 `.env.example`，只有在需要覆盖根目录配置时才复制成该目录的 `.env`。
+1. `Copy-Item` 生成根目录 `.env`。里面是本机 Docker 的默认账号，不是生产密钥。如果 `.env` 已经存在，把 `DATABASE_URL` 的端口改成 `15432`。各应用目录下也有 `.env.example`，只有在需要覆盖根目录配置时才复制成该目录的 `.env`。
 2. `pnpm install` 会安装依赖，并生成 Prisma Client。
-3. `docker compose up -d` 启动 PostgreSQL（端口 5432）和 Redis（端口 6379）。请先打开 Docker Desktop，等引擎就绪后再执行。
+3. `docker compose up -d` 启动 PostgreSQL（宿主机端口 15432，容器内 5432）和 Redis（宿主机端口 6379）。请先打开 Docker Desktop，等引擎就绪后再执行。
 4. `pnpm db:migrate` 把已有迁移应用到本地数据库。数据库刚启动时如果连接失败，先看 `docker compose ps`，等到 postgres 为 healthy 后再执行一次。
 5. `pnpm dev` 会先编译 `packages/db` 和 `packages/shared`，然后同时启动 Web 和 API。
 
@@ -89,6 +89,20 @@ Invoke-RestMethod http://localhost:3001/health
 返回的 `status` 应为 `ok`。首页上的状态会在 API 连通后显示「API 已连通」。
 
 改了 `API_PORT` 时，把 `.env` 里的 `NEXT_PUBLIC_API_URL` 改成同一个地址，然后重新运行 `pnpm dev`。Web 固定使用 3000 端口，避免和 API 抢 `PORT`。
+
+## Windows 保留端口
+
+Windows 的 Hyper-V / WinNAT 会保留一段 TCP 端口。在这台开发机上，保留范围是 5371–5470，里面包含 PostgreSQL 常用的 5432 和 5433。此时 `docker compose up -d` 会失败，提示 `bind: An attempt was made to access a socket in a way forbidden by its access permissions`。5432 上可以没有任何程序在监听，系统仍会拒绝绑定这段保留端口。
+
+本仓库把 PostgreSQL 的宿主机端口设成 15432，容器内仍是 5432。Redis 的宿主机端口保持 6379。
+
+查看本机保留范围：
+
+```powershell
+netsh interface ipv4 show excludedportrange protocol=tcp
+```
+
+如果 15432 也落在保留范围内，把 `docker-compose.yml` 里 PostgreSQL 的宿主机端口和 `.env` 的 `DATABASE_URL` 改成同一个未被保留的端口。
 
 ## 停止
 
