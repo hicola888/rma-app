@@ -22,7 +22,7 @@ for (const [key, value] of Object.entries(merged)) {
   }
 }
 
-const localDatabaseUrl = 'postgresql://rma:rma@localhost:5432/rma?schema=public';
+const localDatabaseUrl = 'postgresql://rma:rma@localhost:15432/rma?schema=public';
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',

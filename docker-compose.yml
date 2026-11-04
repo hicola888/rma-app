@@ -7,7 +7,8 @@ services:
     container_name: rma-postgres
     restart: unless-stopped
     ports:
-      - '5432:5432'
+      # 宿主机用 15432。Windows 常把 5432 划进 Hyper-V 保留端口，容器内仍是 5432。
+      - '15432:5432'
     environment:
       POSTGRES_USER: rma
       POSTGRES_PASSWORD: rma
