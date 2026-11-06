@@ -3,6 +3,7 @@
 多租户 3PL（第三方物流）退货管理 SaaS 的工程骨架。这个仓库目前能在本地把 Web、API 和 PostgreSQL 跑起来，退货单、质检、租户权限等业务会在后续变更里再加。
 
 功能清单和数据库设计见 [docs/design.md](docs/design.md)。
+订单补件和配件入库见 [docs/parts-replenishment.md](docs/parts-replenishment.md)。
 给写代码的 AI 看的项目约定见 [CLAUDE.md](CLAUDE.md)。
 
 ## 技术栈
