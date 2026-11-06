@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { Geist } from 'next/font/google';
+import { cn } from '@/lib/utils';
+
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'RMA 退货管理',
@@ -21,7 +25,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className={cn('font-sans', geist.variable)}>
       <body className="bg-[#f4f6f8] text-[#122033] antialiased">{children}</body>
     </html>
   );
