@@ -3,6 +3,7 @@
 > 状态：所有设计问题已确认，可以开始第一个功能 PR。
 > 仓库：https://github.com/hicola888/rma-app（apps/web、apps/api、packages/db）
 > 本文不包含任何密钥或凭证值。
+> 订单补件和配件入库见 [parts-replenishment.md](parts-replenishment.md)。
 
 ## 目录
 
@@ -14,6 +15,7 @@
 6. 易仓对接
 7. 现有 Retool 流程对照（含 RTN_RECORD 字段对照）
 8. 已确认的决定
+9. 订单补件与配件入库见 [parts-replenishment.md](parts-replenishment.md)
 
 ---
 
