@@ -15,3 +15,63 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+enum MembershipRole {
+  tenant_admin
+  tenant_staff
+  merchant_user
+}
+
+/// A 3PL company. Clerk Organization id is the login-time handle.
+model Tenant {
+  id          String       @id @default(uuid())
+  name        String
+  clerkOrgId  String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  merchants   Merchant[]
+  memberships Membership[]
+}
+
+/// 货主. Belongs to one tenant. merchant_user can see only one of these.
+model Merchant {
+  id          String       @id @default(uuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  code        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+/// Login identity. Tenant access lives on Membership, not on this row.
+model User {
+  id          String       @id @default(uuid())
+  clerkUserId String       @unique
+  email       String?
+  name        String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+}
+
+/// One user's role inside one tenant. merchant_user must set merchantId.
+model Membership {
+  id         String         @id @default(uuid())
+  userId     String
+  tenantId   String
+  merchantId String?
+  role       MembershipRole
+  createdAt  DateTime       @default(now())
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  merchant   Merchant?      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@index([merchantId])
+}

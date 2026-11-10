@@ -1,0 +1,62 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { findMembershipByClerk } from '@rma/db';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CLERK_TOKEN_VERIFIER, type ClerkTokenVerifier } from './clerk-token-verifier.js';
+import { IS_PUBLIC_KEY } from './public.decorator.js';
+import { RequestWithAuth } from './request-auth.js';
+
+@Injectable()
+export class ClerkAuthGuard implements CanActivate {
+  constructor(
+    private readonly reflector: Reflector,
+    @Inject(CLERK_TOKEN_VERIFIER) private readonly verifier: ClerkTokenVerifier,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest<RequestWithAuth>();
+    const header = request.headers.authorization;
+    if (!header?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('未登录或登录已失效');
+    }
+
+    const token = header.slice('Bearer '.length).trim();
+    let identity;
+    try {
+      identity = await this.verifier.verify(token);
+    } catch {
+      throw new UnauthorizedException('未登录或登录已失效');
+    }
+
+    const membership = await findMembershipByClerk(
+      this.prisma.getClient(),
+      identity.clerkUserId,
+      identity.clerkOrgId,
+    );
+    if (!membership) {
+      throw new ForbiddenException('当前账号还没有加入这个租户');
+    }
+    if (membership.role === 'merchant_user' && !membership.merchantId) {
+      throw new ForbiddenException('货主账号必须绑定一个货主');
+    }
+
+    request.auth = membership;
+    return true;
+  }
+}

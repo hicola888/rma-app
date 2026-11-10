@@ -2,6 +2,14 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client.js';
 
 export { PrismaClient };
+export {
+  findMembershipByClerk,
+  withTenantSession,
+  type MembershipRoleName,
+  type ResolvedMembership,
+  type TenantSession,
+  type TenantTransaction,
+} from './tenant-session.js';
 
 export function createPrismaClient(connectionString = process.env.DATABASE_URL): PrismaClient {
   if (!connectionString) {

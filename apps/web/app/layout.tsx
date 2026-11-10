@@ -1,7 +1,11 @@
+import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata, Viewport } from 'next';
-import './globals.css';
+import { Suspense } from 'react';
 import { Geist } from 'next/font/google';
+import { SignedInHeader } from '@/components/signed-in-header';
+import { assertClerkWebKeys } from '@/lib/clerk-env';
 import { cn } from '@/lib/utils';
+import './globals.css';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -24,9 +28,18 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
+  assertClerkWebKeys();
+
   return (
     <html lang="zh-CN" className={cn('font-sans', geist.variable)}>
-      <body className="bg-[#f4f6f8] text-[#122033] antialiased">{children}</body>
+      <body className="bg-[#f4f6f8] text-[#122033] antialiased">
+        <ClerkProvider>
+          <Suspense fallback={null}>
+            <SignedInHeader />
+          </Suspense>
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
