@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module.js';
 import { HealthModule } from './health/health.module.js';
+import { MerchantsModule } from './merchants/merchants.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -10,7 +12,9 @@ import { PrismaModule } from './prisma/prisma.module.js';
       envFilePath: ['.env', '../../.env'],
     }),
     PrismaModule,
+    AuthModule,
     HealthModule,
+    MerchantsModule,
   ],
 })
 export class AppModule {}

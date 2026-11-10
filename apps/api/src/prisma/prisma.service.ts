@@ -1,5 +1,11 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { createPrismaClient, type PrismaClient } from '@rma/db';
+import {
+  createPrismaClient,
+  withTenantSession,
+  type PrismaClient,
+  type ResolvedMembership,
+  type TenantTransaction,
+} from '@rma/db';
 
 @Injectable()
 export class PrismaService implements OnModuleDestroy {
@@ -12,6 +18,21 @@ export class PrismaService implements OnModuleDestroy {
   getClient(): PrismaClient {
     this.client ??= createPrismaClient();
     return this.client;
+  }
+
+  runWithMembership<T>(
+    membership: ResolvedMembership,
+    run: (db: TenantTransaction) => Promise<T>,
+  ): Promise<T> {
+    return withTenantSession(
+      this.getClient(),
+      {
+        tenantId: membership.tenantId,
+        merchantId: membership.role === 'merchant_user' ? membership.merchantId : null,
+        userId: membership.userId,
+      },
+      run,
+    );
   }
 
   async onModuleDestroy(): Promise<void> {

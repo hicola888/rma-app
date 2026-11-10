@@ -106,7 +106,44 @@ Windows 的 Hyper-V / WinNAT 会保留一段 TCP 端口。在这台开发机上�
 netsh interface ipv4 show excludedportrange protocol=tcp
 ```
 
-如果 15432 也落在保留范围内，把 `docker-compose.yml` 里 PostgreSQL 的宿主机端口和 `.env` 的 `DATABASE_URL` 改成同一个未被保留的端口。
+如果 15432 也落在保留范围内，把 `docker-compose.yml` 里 PostgreSQL 的宿主机端口和 `.env` 里两个连接串的端口改成同一个未被保留的端口。
+
+## 配置 Clerk
+
+登录用 Clerk。密钥只放在本机，不要写进 Git。
+
+1. 在 [Clerk](https://dashboard.clerk.com) 创建一个应用，并打开 Organizations（一个 Organization 对应一个 3PL 租户）。
+2. 复制 Publishable key 和 Secret key。
+3. 新建 `apps/web/.env.local`，写入：
+
+```text
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_这里换成你的值
+CLERK_SECRET_KEY=sk_test_这里换成你的值
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+```
+
+4. 新建 `apps/api/.env`，写入同一把 Secret key，以及应用数据库账号：
+
+```text
+CLERK_SECRET_KEY=sk_test_这里换成你的值
+DATABASE_URL=postgresql://rma_app:rma_app@localhost:15432/rma?schema=public
+DIRECT_URL=postgresql://rma:rma@localhost:15432/rma?schema=public
+```
+
+缺密钥时，Web 或 API 启动会直接报「缺少 Clerk 密钥」，并告诉你该写到哪个文件。
+
+数据库迁移仍用超级用户 `rma`（`DIRECT_URL`）。日常请求用 `rma_app`，这样 Postgres 的行级权限才会生效。`pnpm db:migrate` 会创建 `rma_app`。
+
+跑隔离测试（需要本机 Docker 的 Postgres 已在 15432，并且迁移已经执行）：
+
+```powershell
+pnpm test
+```
+
+测试不使用真实 Clerk 密钥，登录校验是模拟的。
+
+第一次用真实账号登录后，如果接口返回「还没有加入这个租户」，在 Clerk 里记下 User ID 和 Organization ID，用建库账号在数据库里插入 `Tenant`、`User` 和 `Membership`。货主账号的角色是 `merchant_user`，并且必须填写 `merchantId`。
 
 ## 停止
 
@@ -133,12 +170,13 @@ docker compose down
 | `pnpm db:generate`       | 重新生成 Prisma Client               |
 | `pnpm db:migrate:cloud`  | 把已有迁移应用到 Supabase            |
 | `pnpm dev:cloud`         | 用 `.env.supabase` 启动 Web 和 API   |
+| `pnpm test`              | 跑租户隔离测试（需要本机 Postgres）  |
 
 这些脚本可以在 PowerShell 里直接运行，不依赖 Bash。
 
 ## 当前范围
 
-这一步包含可运行的工程骨架：首页、PWA manifest、健康检查、Swagger、Organization 占位模型和第一条迁移。登录、租户隔离、退货单和完整数据库设计留到下一步，所以 Prisma schema 保持最小。
+工程骨架之外，已经接上 Clerk 登录和租户隔离。退货单等业务还没做。数据库设计见 `docs/design.md`。
 
 ## 连接 Supabase
 
@@ -159,10 +197,10 @@ Copy-Item .env.supabase.example .env.supabase
 
 密码里如果有 `@`、`#`、`%`、`&`、`+`、`/`、`?` 这类字符，放进连接串之前要做 URL 编码，例如 `@` 写成 `%40`。从 Prisma 面板复制的整段字符串通常已经编码过，不要再改密码那一段。
 
-本地 `.env` 里让 `DIRECT_URL` 和 `DATABASE_URL` 相同，指向 Docker 的宿主机端口 15432：
+本地 Docker 的两个连接串不一样。应用用 `rma_app`，迁移用 `rma`：
 
 ```text
-DATABASE_URL=postgresql://rma:rma@localhost:15432/rma?schema=public
+DATABASE_URL=postgresql://rma_app:rma_app@localhost:15432/rma?schema=public
 DIRECT_URL=postgresql://rma:rma@localhost:15432/rma?schema=public
 ```
 

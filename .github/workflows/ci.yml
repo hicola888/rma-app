@@ -12,6 +12,26 @@ jobs:
     env:
       TURBO_TELEMETRY_DISABLED: '1'
       NEXT_TELEMETRY_DISABLED: '1'
+      DIRECT_URL: postgresql://rma:rma@localhost:15432/rma?schema=public
+      DATABASE_URL: postgresql://rma_app:rma_app@localhost:15432/rma?schema=public
+      CLERK_SECRET_KEY: sk_test_placeholder
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: rma
+          POSTGRES_PASSWORD: rma
+          POSTGRES_DB: rma
+        ports:
+          - 15432:5432
+        options: >-
+          --health-cmd "pg_isready -U rma -d rma"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +49,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Migrate
+        run: pnpm db:migrate:deploy
+
+      - name: Test
+        run: pnpm test
 
       - name: Lint
         run: pnpm lint

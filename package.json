@@ -15,7 +15,8 @@
     "db:migrate": "pnpm --filter @rma/db db:migrate",
     "db:migrate:deploy": "pnpm --filter @rma/db db:migrate:deploy",
     "db:migrate:cloud": "pnpm --filter @rma/db db:migrate:cloud",
-    "dev:cloud": "turbo dev:cloud"
+    "dev:cloud": "turbo dev:cloud",
+    "test": "pnpm --filter @rma/db build && pnpm --filter @rma/api test"
   },
   "devDependencies": {
     "dotenv": "^18.0.9",
