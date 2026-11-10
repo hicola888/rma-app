@@ -18,6 +18,7 @@
     "db:migrate": "node ../../scripts/with-root-env.mjs prisma migrate dev",
     "db:migrate:deploy": "node ../../scripts/with-root-env.mjs prisma migrate deploy",
     "db:migrate:cloud": "node ../../scripts/with-root-env.mjs --env .env.supabase -- prisma migrate deploy",
+    "db:bootstrap": "node ../../scripts/with-root-env.mjs node dist/bootstrap-cli.js",
     "lint": "eslint ."
   },
   "dependencies": {

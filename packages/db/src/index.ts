@@ -10,6 +10,14 @@ export {
   type TenantSession,
   type TenantTransaction,
 } from './tenant-session.js';
+export {
+  bootstrapMembership,
+  merchantCodeFromName,
+  BootstrapError,
+  membershipRoles,
+  type BootstrapInput,
+  type BootstrapRole,
+} from './bootstrap.js';
 
 export function createPrismaClient(connectionString = process.env.DATABASE_URL): PrismaClient {
   if (!connectionString) {
