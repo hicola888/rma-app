@@ -10,6 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { findMembershipByClerk } from '@rma/db';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CLERK_TOKEN_VERIFIER, type ClerkTokenVerifier } from './clerk-token-verifier.js';
+import { ALLOW_NO_MEMBERSHIP_KEY } from './allow-without-membership.decorator.js';
 import { IS_PUBLIC_KEY } from './public.decorator.js';
 import { RequestWithAuth } from './request-auth.js';
 
@@ -44,12 +45,20 @@ export class ClerkAuthGuard implements CanActivate {
       throw new UnauthorizedException('未登录或登录已失效');
     }
 
+    request.clerk = identity;
     const membership = await findMembershipByClerk(
       this.prisma.getClient(),
       identity.clerkUserId,
       identity.clerkOrgId,
     );
+    const allowWithoutMembership = this.reflector.getAllAndOverride<boolean>(
+      ALLOW_NO_MEMBERSHIP_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     if (!membership) {
+      if (allowWithoutMembership) {
+        return true;
+      }
       throw new ForbiddenException(
         '当前账号还没有加入这个租户。请打开网页 /me，复制 Clerk User ID 和 Organization ID，然后在仓库根目录运行 pnpm db:bootstrap。',
       );

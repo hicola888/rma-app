@@ -77,6 +77,9 @@ describe('tenant isolation', () => {
         if (token === 'merchant-x') {
           return { clerkUserId: clerkUserMerchant, clerkOrgId: clerkOrgA };
         }
+        if (token === 'stranger') {
+          return { clerkUserId: `user_stranger_${suffix}`, clerkOrgId: clerkOrgA };
+        }
         throw new Error('invalid token');
       },
     };
@@ -155,5 +158,47 @@ describe('tenant isolation', () => {
       .expect(200);
     const merchantIds = (merchantResponse.body as Array<{ id: string }>).map((row) => row.id);
     expect(merchantIds).toEqual([merchantXId]);
+  });
+
+  it('returns the caller tenant and role, and hides the other tenant', async () => {
+    const member = await request(http.getHttpServer())
+      .get('/me')
+      .set('Authorization', 'Bearer admin-a')
+      .expect(200);
+
+    expect(member.body).toMatchObject({
+      clerkUserId: clerkUserAdmin,
+      clerkOrgId: clerkOrgA,
+      role: 'tenant_admin',
+      merchantId: null,
+      tenant: { id: tenantAId, name: '租户 A' },
+    });
+    expect(JSON.stringify(member.body)).not.toContain(tenantBId);
+    expect(JSON.stringify(member.body)).not.toContain('租户 B');
+
+    const merchant = await request(http.getHttpServer())
+      .get('/me')
+      .set('Authorization', 'Bearer merchant-x')
+      .expect(200);
+    expect(merchant.body).toMatchObject({
+      role: 'merchant_user',
+      merchantId: merchantXId,
+      tenant: { id: tenantAId, name: '租户 A' },
+    });
+    expect(JSON.stringify(merchant.body)).not.toContain(merchantYId);
+  });
+
+  it('returns null tenant and role when the Clerk user has no membership', async () => {
+    const response = await request(http.getHttpServer())
+      .get('/me')
+      .set('Authorization', 'Bearer stranger')
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      clerkOrgId: clerkOrgA,
+      tenant: null,
+      role: null,
+      merchantId: null,
+    });
   });
 });
