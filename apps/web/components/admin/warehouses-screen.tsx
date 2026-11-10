@@ -2,6 +2,10 @@
 
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+  ImportExportToolbar,
+  matchesFilter,
+} from '@/components/import-export/import-export-toolbar';
 import { useAdminLoad, type AdminRequest, type MeInfo, type Warehouse } from './api';
 
 const emptyForm = { name: '', code: '', address: '' };
@@ -13,6 +17,7 @@ export function WarehousesScreen() {
   const [editing, setEditing] = useState<Warehouse | 'new' | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
+  const [query, setQuery] = useState('');
   const load = useCallback(async (request: AdminRequest) => {
     try {
       const profile = await request<MeInfo>('/me');
@@ -47,6 +52,9 @@ export function WarehousesScreen() {
   }
 
   const canEdit = me?.role === 'tenant_admin';
+  const visible = rows.filter((row) =>
+    matchesFilter(query, [row.code, row.name, row.address, row.active ? '启用' : '停用']),
+  );
 
   function openCreate() {
     setForm(emptyForm);
@@ -88,15 +96,28 @@ export function WarehousesScreen() {
 
   return (
     <section>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <h1 className="text-2xl font-semibold">仓库</h1>
-        {canEdit ? (
-          <Button type="button" onClick={openCreate}>
-            新建仓库
-          </Button>
-        ) : (
-          <p className="text-sm text-[#3d4d5c]">只读</p>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <ImportExportToolbar
+            canImport={canEdit}
+            filename="warehouses"
+            query={query}
+            onQueryChange={setQuery}
+            exportPath="/warehouses/export"
+            templatePath="/warehouses/import/template"
+            previewPath="/warehouses/import/preview"
+            commitPath="/warehouses/import/commit"
+            onCommitted={reload}
+          />
+          {canEdit ? (
+            <Button type="button" onClick={openCreate}>
+              新建仓库
+            </Button>
+          ) : (
+            <p className="text-sm text-[#3d4d5c]">只读</p>
+          )}
+        </div>
       </div>
       <table className="mt-6 w-full text-left text-sm">
         <thead className="text-[#3d4d5c]">
@@ -109,7 +130,7 @@ export function WarehousesScreen() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {visible.map((row) => (
             <tr key={row.id} className="border-t border-[#d5dee6]">
               <td className="py-3 font-mono">{row.code}</td>
               <td>{row.name}</td>

@@ -3,6 +3,10 @@
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
+  ImportExportToolbar,
+  matchesFilter,
+} from '@/components/import-export/import-export-toolbar';
+import {
   locationTypeLabels,
   useAdminLoad,
   type AdminRequest,
@@ -21,6 +25,7 @@ export function LocationsScreen() {
   const [editing, setEditing] = useState<Location | 'new' | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
+  const [query, setQuery] = useState('');
   const load = useCallback(async (request: AdminRequest) => {
     try {
       const profile = await request<MeInfo>('/me');
@@ -53,6 +58,14 @@ export function LocationsScreen() {
 
   const canEdit = me?.role === 'tenant_admin';
   const warehouseName = new Map(warehouses.map((row) => [row.id, `${row.code} ${row.name}`]));
+  const visible = rows.filter((row) =>
+    matchesFilter(query, [
+      warehouseName.get(row.warehouseId),
+      row.code,
+      locationTypeLabels[row.type],
+      row.active ? '启用' : '停用',
+    ]),
+  );
 
   async function save() {
     try {
@@ -81,21 +94,34 @@ export function LocationsScreen() {
 
   return (
     <section>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <h1 className="text-2xl font-semibold">库位</h1>
-        {canEdit ? (
-          <Button
-            type="button"
-            onClick={() => {
-              setForm({ ...emptyForm, warehouseId: warehouses[0]?.id ?? '' });
-              setEditing('new');
-            }}
-          >
-            新建库位
-          </Button>
-        ) : (
-          <p className="text-sm text-[#3d4d5c]">只读</p>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <ImportExportToolbar
+            canImport={canEdit}
+            filename="locations"
+            query={query}
+            onQueryChange={setQuery}
+            exportPath="/locations/export"
+            templatePath="/locations/import/template"
+            previewPath="/locations/import/preview"
+            commitPath="/locations/import/commit"
+            onCommitted={reload}
+          />
+          {canEdit ? (
+            <Button
+              type="button"
+              onClick={() => {
+                setForm({ ...emptyForm, warehouseId: warehouses[0]?.id ?? '' });
+                setEditing('new');
+              }}
+            >
+              新建库位
+            </Button>
+          ) : (
+            <p className="text-sm text-[#3d4d5c]">只读</p>
+          )}
+        </div>
       </div>
       <table className="mt-6 w-full text-left text-sm">
         <thead className="text-[#3d4d5c]">
@@ -108,7 +134,7 @@ export function LocationsScreen() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {visible.map((row) => (
             <tr key={row.id} className="border-t border-[#d5dee6]">
               <td className="py-3">{warehouseName.get(row.warehouseId) ?? row.warehouseId}</td>
               <td className="font-mono">{row.code}</td>

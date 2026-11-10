@@ -49,12 +49,17 @@ export async function withTenantSession<T>(
   session: TenantSession,
   run: (db: TenantTransaction) => Promise<T>,
 ): Promise<T> {
-  return prisma.$transaction(async (db) => {
-    await db.$executeRaw`SELECT set_config('app.tenant_id', ${session.tenantId}, true)`;
-    await db.$executeRaw`SELECT set_config('app.merchant_id', ${session.merchantId ?? ''}, true)`;
-    await db.$executeRaw`SELECT set_config('app.user_id', ${session.userId}, true)`;
-    return run(db);
-  });
+  return prisma.$transaction(
+    async (db) => {
+      await db.$executeRaw`SELECT set_config('app.tenant_id', ${session.tenantId}, true)`;
+      await db.$executeRaw`SELECT set_config('app.merchant_id', ${session.merchantId ?? ''}, true)`;
+      await db.$executeRaw`SELECT set_config('app.user_id', ${session.userId}, true)`;
+      return run(db);
+    },
+    // Bulk import writes every row in this same transaction. The default 5s
+    // limit is too small once a sheet has thousands of rows.
+    { maxWait: 5_000, timeout: 60_000 },
+  );
 }
 
 export type TenantTransaction = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
