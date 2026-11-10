@@ -69,6 +69,17 @@ export async function bootstrapMembership(prisma: PrismaClient, input: Bootstrap
       })
     : null;
 
+  const warehouse = await prisma.warehouse.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'EPP' } },
+    create: {
+      tenantId: tenant.id,
+      name: 'Epping',
+      code: 'EPP',
+      active: true,
+    },
+    update: {},
+  });
+
   const membership = await prisma.membership.upsert({
     where: { userId_tenantId: { userId: user.id, tenantId: tenant.id } },
     create: {
@@ -83,5 +94,5 @@ export async function bootstrapMembership(prisma: PrismaClient, input: Bootstrap
     },
   });
 
-  return { tenant, user, merchant, membership, role, tenantName, merchantName };
+  return { tenant, user, merchant, membership, warehouse, role, tenantName, merchantName };
 }
