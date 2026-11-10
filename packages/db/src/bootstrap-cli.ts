@@ -123,6 +123,7 @@ async function main(): Promise<void> {
     console.log(
       result.merchant ? `货主：${result.merchant.name}（${result.merchant.code}）` : '货主：未创建',
     );
+    console.log(`仓库：${result.warehouse.name}（${result.warehouse.code}）`);
     console.log('再执行一次同样的命令不会产生重复数据。');
   } finally {
     await prisma.$disconnect();

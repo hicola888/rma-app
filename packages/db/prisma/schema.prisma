@@ -31,6 +31,49 @@ model Tenant {
   updatedAt   DateTime     @updatedAt
   merchants   Merchant[]
   memberships Membership[]
+  warehouses  Warehouse[]
+}
+
+enum LocationType {
+  receiving
+  inspection
+  quarantine
+  storage
+  floor_stock
+  parts
+}
+
+/// 仓库. Code is unique inside one tenant.
+model Warehouse {
+  id        String     @id @default(uuid())
+  tenantId  String
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  code      String
+  address   String?
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  locations Location[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+/// 库位. Code is unique inside one warehouse. Shared by merchants of the tenant.
+model Location {
+  id          String       @id @default(uuid())
+  tenantId    String
+  warehouseId String
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  code        String
+  type        LocationType
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([warehouseId, code])
+  @@index([tenantId])
 }
 
 /// 货主. Belongs to one tenant. merchant_user can see only one of these.

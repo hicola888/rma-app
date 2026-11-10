@@ -149,9 +149,17 @@ pnpm test
 pnpm db:bootstrap -- --user-id user_xxx --org-id org_xxx
 ```
 
-不带参数时会逐项提问。租户名称直接回车，默认是「Epping 仓库」。角色默认是 `tenant_admin`。如果角色选 `merchant_user`，必须再填货主名称。
+不带参数时会逐项提问。租户名称直接回车，默认是「Epping 仓库」。角色默认是 `tenant_admin`。如果角色选 `merchant_user`，必须再填货主名称。命令还会确保这个租户有一个默认仓库「Epping」（代码 `EPP`）。
 
 这个命令用 `DIRECT_URL`（建库账号）写入，不受行级权限挡住。再执行一次不会产生重复数据。
+
+登录后页头点「仓库管理」，或直接打开：
+
+- http://localhost:3000/admin/warehouses 仓库
+- http://localhost:3000/admin/locations 库位
+- http://localhost:3000/admin/staff 员工
+
+租户管理员可以新建和修改。仓库员工只能看。商家用户会看到没有权限。
 
 也可以先只看提示：
 

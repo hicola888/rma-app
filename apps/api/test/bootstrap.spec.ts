@@ -38,6 +38,8 @@ describe('db bootstrap', () => {
     expect(second.user.id).toBe(first.user.id);
     expect(second.role).toBe('tenant_admin');
     expect(second.merchant).toBeNull();
+    expect(second.warehouse.code).toBe('EPP');
+    expect(second.warehouse.id).toBe(first.warehouse.id);
     expect(await admin.tenant.count({ where: { clerkOrgId } })).toBe(1);
     expect(
       await admin.membership.count({ where: { userId: first.user.id, tenantId: first.tenant.id } }),

@@ -19,6 +19,9 @@ export function SignedInHeader() {
         当前账号 <span className="font-medium text-[#122033]">{label}</span>
       </p>
       <div className="flex items-center gap-3">
+        <a className="text-sm underline" href="/admin/warehouses">
+          仓库管理
+        </a>
         <a className="text-sm underline" href="/me">
           查看登录 ID
         </a>
