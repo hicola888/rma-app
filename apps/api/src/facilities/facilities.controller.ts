@@ -7,12 +7,17 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
+  StreamableFile,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Db } from '../auth/current-db.decorator.js';
 import { requireFacilityAdmin, requireFacilityReader } from '../auth/roles.js';
 import type { RequestWithAuth } from '../auth/request-auth.js';
+import { renderExport } from '../import-export/engine.js';
+import type { SheetDb } from '../import-export/types.js';
+import { staffExport } from './staff-export.js';
 
 const locationTypes = [
   'receiving',
@@ -278,6 +283,22 @@ export class LocationsController {
 @ApiTags('staff')
 @Controller('staff')
 export class StaffController {
+  @Get('export')
+  @ApiOperation({ summary: '导出当前筛选的员工。只导出，不导入。format 为 csv 或 xlsx。' })
+  async export(
+    @Db() db: object,
+    @Req() request: RequestWithAuth,
+    @Query('format') format: string | undefined,
+    @Query('q') query: string | undefined,
+  ): Promise<StreamableFile> {
+    requireFacilityReader(request);
+    const file = await renderExport(staffExport, db as SheetDb, format, query);
+    return new StreamableFile(file.body, {
+      type: file.contentType,
+      disposition: `attachment; filename="${file.filename}"`,
+    });
+  }
+
   @Get()
   @ApiOperation({ summary: '列出当前租户的员工和角色' })
   list(@Db() db: FacilityDb, @Req() request: RequestWithAuth) {

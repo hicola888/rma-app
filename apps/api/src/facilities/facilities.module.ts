@@ -4,8 +4,15 @@ import {
   StaffController,
   WarehousesController,
 } from './facilities.controller.js';
+import { LocationTransferController, WarehouseTransferController } from './transfer.controller.js';
 
 @Module({
-  controllers: [WarehousesController, LocationsController, StaffController],
+  controllers: [
+    WarehouseTransferController,
+    LocationTransferController,
+    WarehousesController,
+    LocationsController,
+    StaffController,
+  ],
 })
 export class FacilitiesModule {}
