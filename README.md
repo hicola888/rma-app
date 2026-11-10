@@ -143,7 +143,21 @@ pnpm test
 
 测试不使用真实 Clerk 密钥，登录校验是模拟的。
 
-第一次用真实账号登录后，如果接口返回「还没有加入这个租户」，在 Clerk 里记下 User ID 和 Organization ID，用建库账号在数据库里插入 `Tenant`、`User` 和 `Membership`。货主账号的角色是 `merchant_user`，并且必须填写 `merchantId`。
+第一次登录后打开 http://localhost:3000/me ，复制 Clerk User ID 和 Organization ID。然后在仓库根目录执行（把两个 ID 换成你复制的值）：
+
+```powershell
+pnpm db:bootstrap -- --user-id user_xxx --org-id org_xxx
+```
+
+不带参数时会逐项提问。租户名称直接回车，默认是「Epping 仓库」。角色默认是 `tenant_admin`。如果角色选 `merchant_user`，必须再填货主名称。
+
+这个命令用 `DIRECT_URL`（建库账号）写入，不受行级权限挡住。再执行一次不会产生重复数据。
+
+也可以先只看提示：
+
+```powershell
+pnpm db:bootstrap -- --help
+```
 
 ## 停止
 
@@ -171,6 +185,7 @@ docker compose down
 | `pnpm db:migrate:cloud`  | 把已有迁移应用到 Supabase            |
 | `pnpm dev:cloud`         | 用 `.env.supabase` 启动 Web 和 API   |
 | `pnpm test`              | 跑租户隔离测试（需要本机 Postgres）  |
+| `pnpm db:bootstrap`      | 把 Clerk 账号写入第一个租户          |
 
 这些脚本可以在 PowerShell 里直接运行，不依赖 Bash。
 

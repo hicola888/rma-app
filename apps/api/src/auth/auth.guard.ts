@@ -50,7 +50,9 @@ export class ClerkAuthGuard implements CanActivate {
       identity.clerkOrgId,
     );
     if (!membership) {
-      throw new ForbiddenException('当前账号还没有加入这个租户');
+      throw new ForbiddenException(
+        '当前账号还没有加入这个租户。请打开网页 /me，复制 Clerk User ID 和 Organization ID，然后在仓库根目录运行 pnpm db:bootstrap。',
+      );
     }
     if (membership.role === 'merchant_user' && !membership.merchantId) {
       throw new ForbiddenException('货主账号必须绑定一个货主');
