@@ -27,7 +27,8 @@ Full design: `docs/design.md` (Chinese). Follow it; ask before deviating.
 
 ## Workflow
 
-- One PR per feature, in the order in `docs/design.md` (PR 4: Clerk + tenancy + RLS + isolation tests, then 5–14). Keep PRs small; CI (lint, build, migrate, tests) must pass.
+- One PR per feature, in the order in `docs/design.md`. MVP includes parts replenishment and parts inbound. Internal reports, the failure-rate report (故障率报表), and WMS write-back are phase 2. WMS write-back later becomes generic API sync to external systems, after the returns flow works end to end. Keep PRs small; CI (lint, build, migrate, tests) must pass.
+- Replenishment: statuses 已处理 and 已发出 are separate. A newly opened unit number uses prefix `REP` and its own sequence (e.g. `REP000123`), not `ReturnItem.code`. One tracking number per `PartsOrder` header.
 - UI text is in Simplified Chinese.
 - The owner is a software beginner: every PR description must explain, in simple Chinese, what changed, why, and how to verify it locally (exact commands).
 - Don't over-engineer; explain key decisions.
